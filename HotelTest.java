@@ -29,7 +29,11 @@ public class HotelTest {
 
     @Test
     public void testRoomFilter() throws SQLException{
-        assertEquals(hotelDAO.getFilteredRooms().get(0).getPrice(),215);
+        assertEquals(hotelDAO.getFilteredRooms().get(0).getAvailableR(),1);
     }
 
+    @Test
+    public void testBooking() throws SQLException{
+        hotelDAO.bokaHandler(410, "Grand Hótel");
+    }
 }
