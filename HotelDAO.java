@@ -6,7 +6,7 @@ public class HotelDAO {
     public static String hoteltype="H";
     public static int hotelrating = 4;
     public static String loc = "R";
-    public static int availableR = 1;
+    public static int availableH = 1;
     public static int gym = 1;
     public static int pool = 0;
     public static int breakfast = 1;
@@ -16,6 +16,8 @@ public class HotelDAO {
     public static int Rwifi = 1;
     public static int RLprice = 100;
     public static int RHprice = 300;
+    public static int availableR = 1;
+    public static int rID;
 
     public static ArrayList<Hotel> getAllHotels() throws SQLException{
         Connection con = DriverManager.getConnection("jdbc:sqlite:db/hotel.db");
@@ -42,9 +44,9 @@ public class HotelDAO {
         {
             hotelrating = 0;
         }
-        if(availableR < 1)
+        if(availableH < 1)
         {
-            availableR = -1;
+            availableH = -1;
         }
         Connection con = DriverManager.getConnection("jdbc:sqlite:db/hotel.db");
         ArrayList<Hotel> filteredHList = new ArrayList<>();
@@ -57,7 +59,7 @@ public class HotelDAO {
             pst.setString(2, hoteltype+"%");
             pst.setInt(3, hotelrating);
             pst.setString(4, loc+"%");
-            pst.setInt(5, availableR);
+            pst.setInt(5, availableH);
             pst.setInt(6, gym);
             pst.setInt(7, pool);
             pst.setInt(8, breakfast);
@@ -87,7 +89,7 @@ public class HotelDAO {
     public static ArrayList<Room> getFilteredRooms() throws SQLException{
         Connection con = DriverManager.getConnection("jdbc:sqlite:db/hotel.db");
         ArrayList<Room> filteredRList = new ArrayList<>();
-        String sql = "Select * from rooms where hotelId like (Select name from hotels where name LIKE ? AND type Like ?  AND rating = ? AND location Like ? AND noRooms >= ? AND gym = ? AND pool = ? AND breakfast = ? AND pricerange >= ? AND pricerange <= ?) AND beds = ? AND wifi = ? AND price >= ? AND price <= ?";
+        String sql = "Select * from rooms where hotelId like (Select name from hotels where name LIKE ? AND type Like ?  AND rating = ? AND location Like ? AND noRooms >= ? AND gym = ? AND pool = ? AND breakfast = ? AND pricerange >= ? AND pricerange <= ?) AND beds = ? AND wifi = ? AND price >= ? AND price <= ? AND availableR = ? ";
         PreparedStatement pst = null;
         ResultSet rs = null;
         try{
@@ -96,7 +98,7 @@ public class HotelDAO {
             pst.setString(2, hoteltype+"%");
             pst.setInt(3, hotelrating);
             pst.setString(4, loc+"%");
-            pst.setInt(5, availableR);
+            pst.setInt(5, availableH);
             pst.setInt(6, gym);
             pst.setInt(7, pool);
             pst.setInt(8, breakfast);
@@ -106,6 +108,7 @@ public class HotelDAO {
             pst.setInt(12, Rwifi);
             pst.setInt(13, RLprice);
             pst.setInt(14, RHprice);
+            pst.setInt(15, availableR);
             rs = pst.executeQuery();
             while (rs.next()){
                 Room ro = new Room();
@@ -113,6 +116,8 @@ public class HotelDAO {
                 ro.setBeds(rs.getInt("beds"));
                 ro.setWifi(rs.getInt("wifi"));
                 ro.setPrice(rs.getInt("price"));
+                ro.setAvailableR(rs.getInt("availableR"));
+                ro.setRoomId(rs.getInt("roomId"));
                 filteredRList.add(ro);
             }
         }
@@ -121,4 +126,45 @@ public class HotelDAO {
         }
         return filteredRList;
     }
+
+    public static void bokaHandler(int rId, String hId) throws SQLException{
+        Connection con = DriverManager.getConnection("jdbc:sqlite:db/hotel.db");
+        String sql = "UPDATE rooms SET availableR = 0 WHERE roomId = ? AND hotelId = ?";
+        PreparedStatement pst = null;
+        try {
+            pst = con.prepareStatement(sql);
+            pst.setInt(1, rId);
+            pst.setString(2, hId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        minnkaHotel(hId);
+    }
+
+    public static void afbokaHandler(int rId, String hId) throws SQLException{
+        Connection con = DriverManager.getConnection("jdbc:sqlite:db/hotel.db");
+        String sql = "UPDATE rooms SET availableR = 1 WHERE roomId = ? AND hotelId = ?";
+        PreparedStatement pst = null;
+        try {
+            pst = con.prepareStatement(sql);
+            pst.setInt(1, rId);
+            pst.setString(2, hId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void minnkaHotel(String hId) throws SQLException{
+        Connection con = DriverManager.getConnection("jdbc:sqlite:db/hotel.db");
+        String sql = "UPDATE hotels SET noRooms = noRooms - 1 WHERE name = ?";
+        PreparedStatement pst = null;
+        try {
+            pst = con.prepareStatement(sql);
+            pst.setString(1, hId);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
